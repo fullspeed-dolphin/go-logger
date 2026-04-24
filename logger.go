@@ -41,7 +41,7 @@ func Init(cfg *Config) {
 			LevelKey:       "level",
 			NameKey:        "logger",
 			CallerKey:      "caller",
-			MessageKey:     "msg",
+			MessageKey:     "message",
 			StacktraceKey:  "stacktrace",
 			LineEnding:     zapcore.DefaultLineEnding,
 			EncodeLevel:    zapcore.LowercaseLevelEncoder,

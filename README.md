@@ -31,13 +31,22 @@ func main() {
     logger.Init(&logger.Config{
         Level:   "info",      // debug | info | warn | error
         AppName: "sport-api", // 固定字段 app 会出现在每条日志里
-        // OutputPath: "/var/log/sport-api.log", // 可选；空则仅 stdout
+
+        // 可选：落盘 + 自动轮转（基于 lumberjack）
+        OutputPath:      "/var/log/sport-api/app.log",
+        MaxSizeMB:       100,   // 单文件最大 100MB
+        MaxBackups:      7,     // 保留 7 个旧文件
+        MaxAgeDays:      30,    // 最长 30 天
+        DisableCompress: false, // 默认 gzip 压缩旧文件
+        DisableConsole:  false, // 默认同时写 stdout
     })
     defer logger.Sync()
 
     logger.L().Info("server started")
 }
 ```
+
+**路径为空 → 仅 stdout**；**路径非空 → stdout + 轮转文件**（除非 `DisableConsole=true`）。轮转字段全部零值时走合理默认（100MB / 7 backups / 30 days / 压缩开）。
 
 ### 2. 业务代码里带 context 打日志
 

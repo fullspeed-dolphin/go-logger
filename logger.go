@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var (
@@ -18,8 +19,15 @@ var (
 // Config 日志配置
 type Config struct {
 	Level      string `yaml:"level"`       // debug | info | warn | error
-	OutputPath string `yaml:"output_path"` // 文件路径，空则仅 stdout
+	OutputPath string `yaml:"output_path"` // 日志文件路径；空则仅 stdout，不落盘
 	AppName    string `yaml:"app_name"`    // 应用名，作为固定字段 app 输出
+
+	// ===== 仅在 OutputPath != "" 时生效的轮转参数（lumberjack） =====
+	MaxSizeMB       int  `yaml:"max_size_mb"`      // 单文件最大 MB，默认 100
+	MaxBackups      int  `yaml:"max_backups"`      // 保留的旧文件数，默认 7
+	MaxAgeDays      int  `yaml:"max_age_days"`     // 旧文件最大保留天数，默认 30
+	DisableCompress bool `yaml:"disable_compress"` // 默认压缩旧文件；置 true 关闭
+	DisableConsole  bool `yaml:"disable_console"`  // 落盘时是否关闭 stdout；默认 false
 }
 
 // Init 初始化全局 Logger（JSON 格式，适配 ELK/Loki）。
@@ -42,11 +50,13 @@ func Init(cfg *Config) {
 			EncodeCaller:   zapcore.ShortCallerEncoder,
 		}
 
-		writers := []zapcore.WriteSyncer{zapcore.AddSync(os.Stdout)}
+		writers := make([]zapcore.WriteSyncer, 0, 2)
+		if !cfg.DisableConsole || cfg.OutputPath == "" {
+			// 未显式禁用，或没配文件路径时，必须保留 stdout，否则一条日志都看不到
+			writers = append(writers, zapcore.AddSync(os.Stdout))
+		}
 		if cfg.OutputPath != "" {
-			if f, err := os.OpenFile(cfg.OutputPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
-				writers = append(writers, zapcore.AddSync(f))
-			}
+			writers = append(writers, zapcore.AddSync(newRotator(cfg)))
 		}
 
 		core := zapcore.NewCore(
@@ -64,6 +74,31 @@ func Init(cfg *Config) {
 		}
 		globalLogger = l
 	})
+}
+
+// newRotator 基于 Config 构造 lumberjack 轮转 writer。
+// 零值字段回落到合理默认，避免使用者必须全填。
+func newRotator(cfg *Config) *lumberjack.Logger {
+	maxSize := cfg.MaxSizeMB
+	if maxSize <= 0 {
+		maxSize = 100
+	}
+	maxBackups := cfg.MaxBackups
+	if maxBackups <= 0 {
+		maxBackups = 7
+	}
+	maxAge := cfg.MaxAgeDays
+	if maxAge <= 0 {
+		maxAge = 30
+	}
+	return &lumberjack.Logger{
+		Filename:   cfg.OutputPath,
+		MaxSize:    maxSize,
+		MaxBackups: maxBackups,
+		MaxAge:     maxAge,
+		Compress:   !cfg.DisableCompress,
+		LocalTime:  true,
+	}
 }
 
 // L 返回全局 Logger。未初始化时使用默认配置 fallback。

@@ -10,12 +10,12 @@
 ## 安装
 
 ```bash
-go get github.com/speexpay/go-logger
+go get github.com/fullspeed-dolphin/go-logger
 ```
 
 > 若仓库尚未推到远端，可在各服务 `go.mod` 里加 `replace`：
 > ```
-> replace github.com/speexpay/go-logger => ../go-logger
+> replace github.com/fullspeed-dolphin/go-logger => ../go-logger
 > ```
 
 ## 快速开始
@@ -24,7 +24,7 @@ go get github.com/speexpay/go-logger
 
 ```go
 import (
-    "github.com/speexpay/go-logger"
+    "github.com/fullspeed-dolphin/go-logger"
 )
 
 func main() {
@@ -60,8 +60,8 @@ logger.L().Error("db connect failed", zap.Error(err))
 import (
     "net/http"
 
-    "github.com/speexpay/go-logger"
-    "github.com/speexpay/go-logger/httpmw"
+    "github.com/fullspeed-dolphin/go-logger"
+    "github.com/fullspeed-dolphin/go-logger/httpmw"
 )
 
 // 上游 auth 中间件把 openid 放进 context，日志中间件通过 extractor 读取

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/speexpay/go-logger"
+	"github.com/fullspeed-dolphin/go-logger"
 
 	"go.uber.org/zap"
 )

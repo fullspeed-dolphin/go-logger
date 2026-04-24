@@ -1,4 +1,4 @@
-module github.com/speexpay/go-logger
+module github.com/fullspeed-dolphin/go-logger
 
 go 1.24.0
 

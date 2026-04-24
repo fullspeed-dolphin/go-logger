@@ -95,7 +95,7 @@ func Middleware(cfg Config) func(http.HandlerFunc) http.HandlerFunc {
 			reqFields := []zap.Field{
 				zap.String("trace_id", traceID),
 				zap.String("method", r.Method),
-				zap.String("location", r.URL.Path),
+				zap.String("path", r.URL.Path),
 				zap.String("query", r.URL.RawQuery),
 				zap.String("remote_addr", r.RemoteAddr),
 				zap.Any("headers", headers),
@@ -121,7 +121,7 @@ func Middleware(cfg Config) func(http.HandlerFunc) http.HandlerFunc {
 			respFields := []zap.Field{
 				zap.String("trace_id", traceID),
 				zap.String("method", r.Method),
-				zap.String("location", r.URL.Path),
+				zap.String("path", r.URL.Path),
 				zap.Int("status", wrapped.statusCode),
 				zap.Duration("duration", time.Since(start)),
 			}
